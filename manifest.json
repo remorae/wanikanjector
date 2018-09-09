@@ -10,20 +10,15 @@
     },
     "background": {
         "scripts": [
-            "js/background/wanikanjector.js"
+            "js/wanikanjector.js"
         ]
     },
-    "content_scripts": [
-        {
-            "matches": ["<all_urls>"],
-            "js": ["js/content/replace.js"]
-        }
-    ],
     "browser_action": {
         "default_popup": "html/popup.html"
     },
     "permissions": [
-        "activeTab",
+        "<all_urls>",
+        "tabs",
         "storage"
     ],
     "web_accessible_resources": [
