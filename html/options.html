@@ -49,6 +49,9 @@
                 <div class="w-100"></div>
                 <div class="col-sm">
                     <h4>Run On Load</h4>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-sm">
                     <p>
                         You can have text replacement occur when the page loads.
                         If disabled, you can replace text by clicking the button in the popup menu.
@@ -57,8 +60,8 @@
                 <div class="col-sm">
                     <form>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" data-toggle="toggle" data-offstyle="primary"
-                                type="checkbox" id="runOnLoad" value="runOnLoad" checked>
+                            <input class="form-check-input" type="checkbox" id="runOnLoad" value="runOnLoad" checked>
+                            <label class="form-check-label" for="runOnLoad">Replace Text On Page Load</label>
                         </div>
                     </form>
                 </div>
@@ -127,7 +130,7 @@
                 </div>
                 <div class="col-sm">
                     <div class="form-group">
-                        <textarea class="form-control" id="customVocab" rows="3"></textarea>
+                        <textarea class="form-control" id="blacklist" rows="3"></textarea>
                         <small class="form-text text-muted">
                                 You may use <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expressions</a> (regex).
                                 For more help, see <a href="https://regexr.com/">here</a>.
@@ -138,7 +141,6 @@
         </div>
         <script src="../js/jquery-3.3.1.min.js"></script>
         <script src="../js/bootstrap.bundle.min.js"></script>
-        <script src="../js/bootstrap-toggle.min.js"></script>
         <script src="../js/options.js"></script>
     </body>
 </html>

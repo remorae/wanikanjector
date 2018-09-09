@@ -23,15 +23,21 @@
         "default_popup": "html/popup.html"
     },
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "storage"
     ],
     "web_accessible_resources": [
 
     ],
     "options_ui": {
-        "page": "html/options.html",
+        "page": "wanikanjector@example.org",
         "open_in_tab": true,
         "browser_style": true,
         "chrome_style": true
+    },
+    "applications": {
+        "gecko": {
+            "id": "{42}"
+        }
     }
 }
