@@ -30,14 +30,14 @@
 
     ],
     "options_ui": {
-        "page": "wanikanjector@example.org",
+        "page": "html/options.html",
         "open_in_tab": true,
         "browser_style": true,
         "chrome_style": true
     },
     "applications": {
         "gecko": {
-            "id": "{42}"
+            "id": "wanikanjector@example.org"
         }
     }
 }
