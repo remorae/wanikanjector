@@ -3,6 +3,7 @@
     "name": "Wanikanjector",
     "version": "1.0",
     "description": "Replaces English words with Kanji learned on https://www.wanikani.com.",
+    "homepage_url": "https://github.com/APlagman/wanikanjector",
     "icons": {
         "48": "icons/wanikanjector-48.png",
         "96": "icons/wanikanjector-96.png"
@@ -20,5 +21,11 @@
     ],
     "browser_action": {
         "default_popup": "html/popup.html"
-    }
+    },
+    "permissions": [
+
+    ],
+    "web_accessible_resources": [
+
+    ]
 }
