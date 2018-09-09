@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>Wanikanjector Options</title>
+
+        <link rel="stylesheet" href="../css/bootstrap.min.css">
+        <link rel="stylesheet" href="../css/options.css">
+    </head>
+
+    <body>
+        <h1><img src="../icons/wanikanjector-48-light.png" style="padding-right: 15px">Wanikanjector Options</h1>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <h2>Public API Key</h2>
+                    <p>
+                        Your API key can be obtained from your WaniKani account page.
+                        This key is required to retrieve your vocabulary list.
+                    </p>
+                </div>
+                <div class="col-sm">
+                </div>
+            <div class="row">
+                <div class="col-sm">
+                    <h2>Vocabulary Cache</h2>
+                    <p>
+                        Your WaniKani vocabulary is stored locally for performance reasons (and to play nice with WaniKani's servers).
+                        Click this button to clear the cache.
+                    </p>
+                </div>
+                <div class="col-sm">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <h2>Run On Load</h2>
+                    <p>
+                        You can have text replacement occur when the page loads.
+                        If disabled, you can run when the button is clicked via the popup menu.
+                    </p>
+                </div>
+                <div class="col-sm">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <h2>SRS Filters</h2>
+                    <p>
+                        Only words from the checked groups will be substituted with kanji.
+                    </p>
+                </div>
+                <div class="col-sm">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <h2>Custom Vocabulary</h2>
+                    <p>
+                        Enter words here to override WaniKani vocabulary.
+                        Format: english1,english2,...,vocab;reading;
+                        Example: cat,feline;猫;ねこ
+                        One entry per line.
+                        Note the commas between English synonyms as well as the semicolons before the kanji/reading.
+                    </p>
+                </div>
+                <div class="col-sm">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm">
+                    <h2>Black List</h2>
+                    <p>
+                        Enter sites below to prevent Wanikanjector from running on them automatically regardless of the above setting.
+                        Sites can be entered using&nbsp;<a href="https://en.wikipedia.org/wiki/Regular_expression">regular expressions</a>&nbsp;(regex).
+                        A helpful site for creating regex can be found&nbsp;<a href="https://regexr.com/">here</a>.
+                        Sites will be blacklisted if any pattern matches the URL.
+                        Make sure to click <b>save</b> after making any changes to the list!
+                    </p>
+                </div>
+                <div class="col-sm">
+                </div>
+            </div>
+        </div>
+        <script src="../js/jquery-3.3.1.min.js"></script>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script src="../js/options.js"></script>
+    </body>
+</html>
