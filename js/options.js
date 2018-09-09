@@ -1,5 +1,7 @@
 // Page input element setup
 const apiKeyInput = document.getElementById("apiKey");
+const clearCacheBtn = document.getElementById("clearCache");
+const cacheClearedLbl = document.getElementById("cacheClearedLbl");
 const runOnLoadInput = document.getElementById("runOnLoad");
 const srsNames = ["apprentice", "guru", "master", "enlightened", "burned"];
 const srsInputs = new Map();
@@ -24,7 +26,7 @@ function storeOptions() {
         options.wanikanjector.includedSRS[key] = element.checked;
     }
 
-    browser.storage.local.set(options).then(function(){
+    browser.storage.local.set(options).then(function () {
         console.log("Saved.");
     });
 }
@@ -47,6 +49,37 @@ function onError(e) {
     console.error(e);
 }
 
+function fade(el, duration, fadeIn) {
+    console.log(fadeIn);
+    el.style.opacity = fadeIn ? 0 : 1;
+
+    var last = +new Date();
+    var tick = function() {
+        let delta = (new Date() - last) / duration;
+        console.log(delta);
+        el.style.opacity = fadeIn ? (+el.style.opacity + delta) : (+el.style.opacity - delta);
+        last = +new Date();
+
+        if (fadeIn ? (+el.style.opacity < 1) : (+el.style.opacity > 0)) {
+            (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+        }
+    };
+
+    tick();
+}
+function fadeIn(el, duration) { fade(el, duration, true); }
+function fadeOut(el, duration) { fade(el, duration, false); }
+
+function clearCache() {
+    browser.storage.local.remove("wanikanjector.vocabCache").then(function () {
+        clearCacheBtn.classList.remove("btn-warning");
+        clearCacheBtn.classList.add("btn-success");
+        fadeIn(cacheClearedLbl, 500);
+        console.log("Cache cleared.");
+    }, onError);
+
+}
+
 console.log("Hello there!");
 // Retrieve stored options when the page is loaded.
 browser.storage.local.get().then(loadOptions, onError);
@@ -59,3 +92,4 @@ blacklistInput.addEventListener("input", storeOptions);
 for (let element of srsInputs.values()) {
     element.addEventListener("change", storeOptions);
 }
+clearCacheBtn.addEventListener("click", clearCache);
