@@ -4,13 +4,16 @@ Wanikanjector replaces English words with their Japanese equivalent in [kanji](h
 However, there's a catch: By default, only words you've learned from [WaniKani](https://www.wanikani.com) are replaced.
 
 Features:
-- Enable/disable globally.
-- Color-coordinate kanji by level (apprentice, guru, etc.).
-- Optionally highlight learned kanji on sites originally in Japanese.
-- Blacklist sites to prevent replacing text.
-- Import custom vocabulary from outside of WaniKani.
-- Hover over words to see the original text, hiragana readings, and helpful links like dictionary definitions.s
-- Generate a list of all kanji/vocabulary that appears on the page.
+- [x] Enable/disable running automatically when loading a tab.
+- [x] Blacklist sites to prevent replacing text.
+- [x] Hover over words to see the original text.
+- [ ] Run on-demand upon clicking a button in the extension pop-up menu.
+- [ ] Color-coordinate kanji by level (apprentice, guru, etc.).
+- [ ] Optionally highlight learned kanji on sites originally in Japanese.
+- [ ] Import custom vocabulary from outside of WaniKani.
+- [ ] Hover over words to see hiragana readings.
+- [ ] Hover over words to see links to dictionary entries.
+- [ ] Generate a list of all kanji/vocabulary that appears on the page.
 
 This extension isn't designed to accurately allow you to read Japanese.
 Rather, it's a way of remembering the meanings/readings of Kanji as you go about your day!
