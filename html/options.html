@@ -1,165 +1,174 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>Wanikanjector Options</title>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <link rel="stylesheet" href="../css/bootstrap.min.css">
-        <link rel="stylesheet" href="../css/bootstrap-toggle.min.css">
-        <link rel="stylesheet" href="../css/options.css">
-    </head>
+    <title>Wanikanjector Options</title>
 
-    <body>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm text-center">
-                    <h3><img src="../icons/wanikanjector-48.png" style="padding: 15px">Wanikanjector Options</h3>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm">
-                    <h4>Public API Key</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        Your API key can be obtained from your WaniKani <a href="https://www.wanikani.com/settings/account">account page</a>.
-                        This key is required to retrieve your vocabulary list.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <div class="form-group">
-                        <input type="password" class="form-control" id="apiKey" placeholder="Public API Key">
-                    </div>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <h4>Vocabulary Cache</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        Your WaniKani vocabulary is stored locally for performance reasons (and to play nice with WaniKani's servers).
-                        Click this button to clear the cache.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <button type="button" class="btn btn-warning" id="clearCache">Clear Cache</button>
-                    <label class="form-label" for="clearCache" id="cacheClearedLbl" style="opacity: 0">Cache cleared!</label>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <h4>Run On Load</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        You can have text replacement occur when the page loads.
-                        If disabled, you can replace text by clicking the button in the popup menu.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <form>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="runOnLoad" value="runOnLoad">
-                            <label class="form-check-label" for="runOnLoad">Replace Text On Page Load</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <h4>SRS Filters</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        Only words from the checked groups will be substituted with kanji.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <form>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="apprentice" value="apprentice" checked>
-                            <label class="form-check-label" for="apprentice">Apprentice</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="guru" value="guru" checked>
-                            <label class="form-check-label" for="guru">Guru</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="master" value="master" checked>
-                            <label class="form-check-label" for="master">Master</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="enlightened" value="enlightened" checked>
-                            <label class="form-check-label" for="enlightened">Enlightened</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="burned" value="burned" checked>
-                            <label class="form-check-label" for="burned">Burned</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <h4>Custom Vocabulary</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        Enter words here to override WaniKani vocabulary.<br/>
-                        <b>Example:</b> dog,terrier;犬;いぬ<br/>
-                        One entry per line.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <div class="form-group">
-                        <textarea class="form-control" id="customVocab" rows="3" placeholder="english1,english2,...;vocab;reading"></textarea>
-                        <small class="form-text text-muted">Note the commas between English synonyms as well as the semicolons before the vocab/reading.</small>
-                    </div>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <h4>Black List</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        Prevent Wanikanjector from running automatically on any matching sites.
-                        Sites will be blacklisted if <i>any</i> pattern matches the URL.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <div class="form-group">
-                        <textarea class="form-control" id="blacklist" rows="3"></textarea>
-                        <small class="form-text text-muted">
-                                You may use <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expressions</a> (regex).
-                                For more help, see <a href="https://regexr.com/">here</a>.
-                        </small>
-                    </div>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <h4>Permissions</h4>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-sm">
-                    <p>
-                        These are the current browser <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/permissions">permissions</a> required by Wanikanjector.
-                    </p>
-                </div>
-                <div class="col-sm">
-                    <ul class="list-group" id="permissions">
-                    </ul>
-                </div>
-            </div>
-            </div>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/options.css">
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col text-center">
+          <h3><img src="../icons/wanikanjector-48.png" style="padding: 15px">Wanikanjector Options</h3>
         </div>
-        <script src="../js/jquery-3.3.1.min.js"></script>
-        <script src="../js/bootstrap.bundle.min.js"></script>
-        <script src="../js/options.js"></script>
-    </body>
+      </div>
+      <div class="row">
+        <div class="col">
+          <h5>Public API Key</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            Your API key can be obtained from your WaniKani <a href="https://www.wanikani.com/settings/account">account
+              page</a>.
+            This key is required to retrieve your vocabulary list.
+          </p>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <input type="password" class="form-control" id="apiKey" placeholder="Public API Key">
+          </div>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <h5>Vocabulary Cache</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            Your WaniKani vocabulary is stored and updated hourly (if needed) for performance reasons.
+          </p>
+        </div>
+        <div class="col">
+          <button type="button" class="btn btn-warning" id="clearCache">Clear Cache</button>
+          <label class="form-label" for="clearCache" id="cacheClearedLbl" style="opacity: 0">Cache cleared!</label>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <h5>Run On Load</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            Check to replace text when a page loads. You can toggle at anytime via the popup menu.
+          </p>
+        </div>
+        <div class="col">
+          <form>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="runOnLoad" value="runOnLoad">
+              <label class="form-check-label" for="runOnLoad">Replace Text On Page Load</label>
+            </div>
+          </form>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <h5>SRS Filters</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            Check levels to include their kanji.
+          </p>
+        </div>
+        <div class="col">
+          <form>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="apprentice" value="apprentice" checked>
+              <label class="form-check-label" for="apprentice">Apprentice</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="guru" value="guru" checked>
+              <label class="form-check-label" for="guru">Guru</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="master" value="master" checked>
+              <label class="form-check-label" for="master">Master</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="enlightened" value="enlightened" checked>
+              <label class="form-check-label" for="enlightened">Enlightened</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="burned" value="burned" checked>
+              <label class="form-check-label" for="burned">Burned</label>
+            </div>
+          </form>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <h5>Custom Vocabulary</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            Enter words here to override WaniKani vocabulary.<br />
+            <b>Example:</b> dog,terrier;犬;いぬ<br />
+            One entry per line.
+          </p>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <textarea class="form-control" id="customVocab" rows="3" placeholder="english1,english2,...;vocab;reading"></textarea>
+            <small class="form-text text-muted">Note the commas between English synonyms and
+              semicolons before the vocab/reading.</small>
+          </div>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <h5>Black List</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            Prevent Wanikanjector from running automatically on any matching sites.
+            Sites will be blacklisted if <i>any</i> pattern matches the URL.
+          </p>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <textarea class="form-control" id="blacklist" rows="3"></textarea>
+            <small class="form-text text-muted">
+              You may use <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expressions</a>
+              (regex).
+              For more help, see <a href="https://regexr.com/">here</a>.
+            </small>
+          </div>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <h5>Permissions</h5>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">
+          <p>
+            These are the current browser <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/permissions">permissions</a>
+            required by Wanikanjector.
+          </p>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <button type="button" class="btn btn-warning" id="clearPermissions">Remove Optional Permissions</button>
+            <label class="form-label" for="clearPermissions" id="permsClearedLbl" style="opacity: 0">Done!</label>
+          </div>
+          <form id="permissions"></form>
+        </div>
+      </div>
+      <div class="row">
+      </div>
+    </div>
+    </div>
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/options.js"></script>
+  </body>
+
 </html>

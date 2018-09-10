@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.tabSize": 2,
+    "html.format.indentInnerHtml": true,
+    "editor.formatOnSave": true,
+    "editor.detectIndentation": false
+  }
+}

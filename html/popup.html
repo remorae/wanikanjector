@@ -1,12 +1,44 @@
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <meta charset="utf-8">
-        <link rel="stylesheet" href="../css/popup.css"/>
-    </head>
 
-    <body>
-        <script src="../js/popup.js"></script>
-    </body>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/popup.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col text-center">
+          <button type="button" class="btn btn-primary mb-2" id="kanjiToggleBtn">Toggle Kanji</button>
+          <button type="button" class="btn btn-secondary mb-2" id="vocabBtn">Generate Vocab</button>
+          <button type="button" class="btn btn-info mb-2" id="optionsBtn">Options</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <form>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">Blacklist</span>
+              </div>
+              <textarea class="form-control" id="blacklist" rows="3"></textarea>
+            </div>
+            <small class="form-text text-muted">
+              You may use <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expressions</a>
+              (regex).
+              For more help, see <a href="https://regexr.com/">here</a>.
+            </small>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/popup.js"></script>
+  </body>
+
 </html>

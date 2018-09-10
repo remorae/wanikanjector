@@ -1,40 +1,44 @@
 {
-    "manifest_version": 2,
-    "name": "Wanikanjector",
-    "version": "1.0",
-    "description": "Replaces English words with Kanji learned on https://www.wanikani.com.",
-    "homepage_url": "https://github.com/APlagman/wanikanjector",
-    "icons": {
-        "48": "icons/wanikanjector-48.png",
-        "96": "icons/wanikanjector-96.png"
+  "manifest_version": 2,
+  "name": "Wanikanjector",
+  "version": "1.0",
+  "description": "Replaces English words with Kanji learned on https://www.wanikani.com.",
+  "homepage_url": "https://github.com/APlagman/wanikanjector",
+  "icons": {
+    "48": "icons/wanikanjector-48.png"
+  },
+  "background": {
+    "scripts": [
+      "js/shared.js",
+      "js/wanikanjector.js"
+    ]
+  },
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": {
+      "16": "icons/wanikanjector-16.png",
+      "32": "icons/wanikanjector-32.png"
     },
-    "background": {
-        "scripts": [
-            "js/wanikanjector.js"
-        ]
-    },
-    "browser_action": {
-        "default_popup": "html/popup.html"
-    },
-    "permissions": [
-        "<all_urls>",
-        "storage"
-    ],
-    "optional_permissions": [
-        "tabs"
-    ],
-    "web_accessible_resources": [
-
-    ],
-    "options_ui": {
-        "page": "html/options.html",
-        "open_in_tab": true,
-        "browser_style": true,
-        "chrome_style": true
-    },
-    "applications": {
-        "gecko": {
-            "id": "wanikanjector@example.org"
-        }
+    "default_popup": "html/popup.html",
+    "default_title": "Wanikanjector"
+  },
+  "permissions": [
+    "<all_urls>",
+    "storage"
+  ],
+  "optional_permissions": [
+    "tabs"
+  ],
+  "web_accessible_resources": [],
+  "options_ui": {
+    "page": "html/options.html",
+    "open_in_tab": true,
+    "browser_style": true,
+    "chrome_style": true
+  },
+  "applications": {
+    "gecko": {
+      "id": "wanikanjector@example.org"
     }
+  }
 }
