@@ -11,15 +11,17 @@ function execute(tabInfo) {
     browser.storage.local.get()
     .then(function (storage) {
         function isBlacklisted() {
+            if (tabInfo.url.startsWith(browser.extension.getURL("")))
+                return true; // Make sure the options/popup pages are in English
             const settings = storage[STORAGE_ROOT];
             if (!settings)
                 return false;
             const blacklist = settings.blacklist;
-            if (blacklist && blacklist.size > 0) {
+            if (blacklist && blacklist.length > 0) {
                 const pattern = new RegExp(
                     blacklist.map(function (entry) {
                         // Allow both regex and exact URLs.
-                        return '(' + entry + ')' + '|' + '(' + escapeRegExp(entry)  + ')';
+                        return '(' + entry + ')';
                     })
                     .join('|'));
                 return pattern.test(tabInfo.url);
@@ -55,7 +57,12 @@ function clearStatus(tabId, changeInfo) {
 // Occurs on load if runOnLoad is true
 function loadOnUpdated(tabId, changeInfo) {
     if (changeInfo.status === 'complete') {
-        executeByID(tabId);
+        const needed = { permissions: ["tabs"] };
+        browser.permissions.contains(needed)
+        .then(havePermissions => {
+            if (havePermissions)
+                executeByID(tabId);
+        });
     }
 }
 

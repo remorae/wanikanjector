@@ -18,8 +18,10 @@
     },
     "permissions": [
         "<all_urls>",
-        "tabs",
         "storage"
+    ],
+    "optional_permissions": [
+        "tabs"
     ],
     "web_accessible_resources": [
 

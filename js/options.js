@@ -13,6 +13,7 @@ for (let name of srsNames.values()) {
 }
 const customVocabInput = document.getElementById("customVocab");
 const blacklistInput = document.getElementById("blacklist");
+const permissionsList = document.getElementById("permissions");
 
 // Store the current options
 function saveSettings() {
@@ -24,14 +25,57 @@ function saveSettings() {
         customVocab: customVocabInput.value.split('\n'),
         blacklist: blacklistInput.value.split('\n'),
     }
+    if (settings.customVocab[0] === "")
+        settings.customVocab = [];
+    if (settings.blacklist[0] === "")
+        settings.blacklist = [];
     for (let [key, element] of srsInputs.entries()) {
         settings.includedSRS[key] = element.checked;
     }
+
+    ensurePermissions(settings);
 
     let toStore = {};
     toStore[STORAGE_ROOT] = settings;
     browser.storage.local.set(toStore).then(function () {
         console.log("Saved.");
+    });
+}
+
+function ensurePermissions(settings) {
+    const neededForAutoRun = { permissions: ["tabs"] };
+    if (settings.runOnLoad) {
+        browser.permissions.request(neededForAutoRun)
+        .then(granted => {
+            if (!granted) {
+                settings.runOnLoad = false;
+                runOnLoadInput.checked = false;
+            }
+        });
+    }
+    refreshPermissions();
+}
+
+function description(permission) {
+    switch (permission) {
+        case "tabs":
+            return "Used to run tab URLs against the blacklist."
+        case "storage":
+            return "Used to save your vocabulary list from WaniKani and these options."
+    }
+}
+
+function refreshPermissions() {
+    browser.permissions.getAll()
+    .then(result => {
+        while (permissionsList.children.length > 0)
+            permissionsList.removeChild(permissions.children[0]);
+        result.permissions.forEach(permission => {
+            const node = document.createElement("li");
+            node.className = "list-group-item";
+            node.innerText = `${permission}: ${description(permission)}`;
+            permissionsList.appendChild(node);
+        });
     });
 }
 
@@ -42,10 +86,12 @@ function loadSettings(storage) {
         return;
     }
     else {
+        ensurePermissions(settings);
+
         apiKeyInput.value = settings.apiKey || "";
         runOnLoadInput.checked = settings.runOnLoad;
-        if (runOnLoadInput.checked == null)
-            runOnLoadInput.checked = true;
+        if (runOnLoadInput.checked === null)
+            runOnLoadInput.checked = false;
         customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
         blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
         for (let [key, element] of srsInputs.entries()) {
