@@ -15,8 +15,4 @@ Features:
 - [ ] Hover over words to see links to dictionary entries.
 - [ ] Generate a list of all kanji/vocabulary that appears on the page.
 
-This extension isn't designed to accurately allow you to read Japanese.
-Rather, it's a way of remembering the meanings/readings of Kanji as you go about your day!
-
-Feel free to create an issue if you find a new bug / have a great idea for a feature.
-You can also submit a pull request!
+Issues reports and/or pull requests are welcome.
