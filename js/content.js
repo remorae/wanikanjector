@@ -1,3 +1,47 @@
+const STORAGE_ROOT = "wanikanjector";
+const LOCAL_CACHE = `${STORAGE_ROOT}_cache`
+const API_KEY_ERROR = "No API key provided! Please visit the options page to set it.";
+const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
+
+function parseHtml(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  return template.content.childNodes;
+}
+
+NodeList.prototype.replaceText = function (search, replaceFunc, textOnly = false) {
+  const toRemove = [];
+  for (let element of this) {
+    let node = element.firstChild;
+    if (!node)
+      continue;
+
+    do {
+      if (node.nodeType !== Node.TEXT_NODE)
+        continue;
+      const original = node.nodeValue;
+      const replacement = original.replace(search, replaceFunc);
+      if (replacement === original)
+        continue;
+
+      if (textOnly || !/</.test(replacement)) {
+        node.nodeValue = replacement;
+      }
+      else {
+        // HTML
+        const nodes = parseHtml(replacement);
+        while (nodes.length > 0) {
+          node.parentNode.insertBefore(nodes[0], node); // This removes nodes[0] from nodes ;_;
+        }
+        toRemove.push(node);
+      }
+    } while (node = node.nextSibling);
+  }
+  for (let child of toRemove.values()) {
+    child.parentNode.removeChild(child);
+  }
+}
+
 function cacheVocabList(vocab) {
   cache = {};
   cache[LOCAL_CACHE] = {
@@ -137,7 +181,7 @@ function main() {
       browser.storage.local.get().then(function (localStorage) {
         cache = localStorage[LOCAL_CACHE];
         importWaniKaniVocab(vocabDict, apiKey, settings.includedSRS, cache);
-        console.log("WaniKani entries: " + vocabDict.size);
+        console.log("WaniKani entries: " + vocabDict.keys().size);
 
         const replaceFunc = buildReplaceFunc(vocabDict, cache, settings);
         const elements = document.querySelectorAll("body :not(noscript):not(script):not(style)");
