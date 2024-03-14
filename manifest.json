@@ -3,7 +3,7 @@
   "name": "Wanikanjector",
   "version": "1.0",
   "description": "Replaces English words with Kanji learned on https://www.wanikani.com.",
-  "homepage_url": "https://github.com/APlagman/wanikanjector",
+  "homepage_url": "https://github.com/remorae/wanikanjector",
   "icons": {
     "48": "icons/wanikanjector-48.png"
   },
