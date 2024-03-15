@@ -1,8 +1,8 @@
 const STORAGE_ROOT = "wanikanjector";
 const LOCAL_CACHE = `${STORAGE_ROOT}_cache`;
 const API_KEY_ERROR = "No API key provided! Please visit the options page to set it.";
-const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
 const SRS_NAMES = ["apprentice", "guru", "master", "enlightened", "burned"];
+
 const levelToSrsName = new Map();
 levelToSrsName.set(1, SRS_NAMES[0]);
 levelToSrsName.set(2, SRS_NAMES[0]);
@@ -110,8 +110,8 @@ function getWanikaniCollection(apiKey, url) {
   return collection;
 }
 
-function makeLevelsParam(userInfo) {
-  const maxLevel = Math.min(userInfo.data.level, userInfo.data.subscription.max_level_granted);
+function makeLevelsParam(userInfo, respectCurrentLevel) {
+  const maxLevel = (respectCurrentLevel) ? Math.min(userInfo.data.level, userInfo.data.subscription.max_level_granted) : userInfo.data.subscription.max_level_granted;
   let levelsParam = "";
   for (let i = 1; i <= maxLevel; ++i) {
     if (i > 1) {
@@ -129,7 +129,7 @@ function getWanikaniVocabAssignments(apiKey) {
     return null;
   }
 
-  const levelsParam = makeLevelsParam(userInfo);
+  const levelsParam = makeLevelsParam(userInfo, true);
   return getWanikaniCollection(apiKey, `https://api.wanikani.com/v2/assignments?levels=${levelsParam}&started&subject_types=vocabulary`);
 }
 
@@ -164,21 +164,21 @@ function includeVocabAssignment(assignment, includedSRS) {
   return true;
 }
 
-function getWanikaniVocabSubjects(apiKey) {
+function getWanikaniVocabSubjects(apiKey, respectCurrentLevel) {
   const userInfo = getWanikaniUserInfo(apiKey);
   if (userInfo === null) {
     console.error("Failed to get WaniKani user information.");
     return null;
   }
 
-  const levelsParam = makeLevelsParam(userInfo);
+  const levelsParam = makeLevelsParam(userInfo, respectCurrentLevel);
   return getWanikaniCollection(apiKey, `https://api.wanikani.com/v2/subjects?types=vocabulary&levels=${levelsParam}`);
 }
 
-function updateCachedWanikaniVocabSubjects(cache, apiKey) {
+function updateCachedWanikaniVocabSubjects(cache, apiKey, respectCurrentLevel) {
   if (!cache.vocabSubjects || !cache.insertedVocabSubjects || isCacheExpired(cache.insertedVocabSubjects)) {
     console.log("Fetching latest WaniKani vocab subjects...");
-    const vocabSubjects = getWanikaniVocabSubjects(apiKey);
+    const vocabSubjects = getWanikaniVocabSubjects(apiKey, respectCurrentLevel);
     if (vocabSubjects !== null) {
       cache.insertedVocabSubjects = (new Date()).toJSON();
       cache.vocabSubjects = vocabSubjects;
@@ -194,30 +194,40 @@ function updateCachedWanikaniVocabSubjects(cache, apiKey) {
   return cache.vocabSubjects;
 }
 
-function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects) {
-  for (const assignment of vocabAssignments.values()) {
-    const subject = vocabSubjects.data.find(subject => subject.id === assignment.data.subject_id);
-    if (!subject || subject === null) {
-      //console.error(`Missing subject for assignment with id ${assignment.id}`);
-      continue;
+function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects, onlyReplaceLearnedVocab) {
+  if (onlyReplaceLearnedVocab) {
+    for (const assignment of vocabAssignments.values()) {
+      const subject = vocabSubjects.data.find(subject => subject.id === assignment.data.subject_id);
+      if (!subject || subject === null) {
+        //console.error(`Missing subject for assignment with id ${assignment.id}`);
+        continue;
+      }
+      const meanings = subject.data.meanings;
+      for (const meaning of meanings.values()) {
+        vocabDict.set(meaning.meaning.toLowerCase(), subject.data.characters);
+      }
     }
-    const meanings = subject.data.meanings;
-    for (const meaning of meanings.values()) {
-      vocabDict.set(meaning.meaning.toLowerCase(), subject.data.characters);
+  }
+  else {
+    for (const subject of vocabSubjects.data) {
+      const meanings = subject.data.meanings;
+      for (const meaning of meanings.values()) {
+        vocabDict.set(meaning.meaning.toLowerCase(), subject.data.characters);
+      }
     }
   }
 }
 
-function importWanikaniVocab(vocabDict, apiKey, includedSRS, cache) {
+function importWanikaniVocab(vocabDict, apiKey, includedSRS, onlyReplaceLearnedVocab, cache) {
   const vocabAssignments = updateCachedWanikaniVocabAssignments(cache, apiKey);
   if (vocabAssignments !== null) {
     console.log(`Found ${vocabAssignments.data.length} vocabulary assignments.`);
     const filteredAssignments = vocabAssignments.data.filter(assignment => includeVocabAssignment(assignment, includedSRS));
     console.log(`${filteredAssignments.length} vocabulary assignments remain after applying filters.`);
-    const vocabSubjects = updateCachedWanikaniVocabSubjects(cache, apiKey);
+    const vocabSubjects = updateCachedWanikaniVocabSubjects(cache, apiKey, onlyReplaceLearnedVocab);
     if (vocabSubjects !== null) {
       console.log(`Found ${vocabSubjects.data.length} vocabulary subjects.`);
-      buildVocabDictionary(vocabDict, filteredAssignments, vocabSubjects);
+      buildVocabDictionary(vocabDict, filteredAssignments, vocabSubjects, onlyReplaceLearnedVocab);
     }
   }
 }
@@ -270,13 +280,11 @@ function main() {
       if (!cache) {
         cache = {};
       }
-      importWanikaniVocab(vocabDict, apiKey, settings.includedSRS, cache);
+      importWanikaniVocab(vocabDict, apiKey, settings.includedSRS, settings.onlyReplaceLearnedVocab, cache);
       console.log(`WaniKani vocab dictionary: ${vocabDict.size} entries`);
-
-      console.log(vocabDict);
       const replaceFunc = buildReplaceFunc(vocabDict, cache, settings);
       const elements = document.querySelectorAll("body :not(noscript):not(script):not(style)");
-      const replaced = elements.replaceText(/(\b(\S+?)\b)+/g, replaceFunc);
+      const replaced = elements.replaceText(/\b\S+\b/g, replaceFunc);
       console.log(`Replaced ${replaced} elements!`);
     }
   });

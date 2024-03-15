@@ -1,9 +1,10 @@
-// Page input element setup
+const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
+
 const apiKeyInput = document.getElementById("apiKey");
 const clearCacheBtn = document.getElementById("clearCache");
 const cacheClearedLbl = document.getElementById("cacheClearedLbl");
-const runOnLoadChkBox = document.getElementById("runOnLoad");
-const SRS_NAMES = ["apprentice", "guru", "master", "enlightened", "burned"];
+const runOnLoadCheckbox = document.getElementById("runOnLoad");
+const onlyReplaceLearnedVocabCheckbox = document.getElementById("onlyReplaceLearnedVocab");
 const srsInputs = new Map();
 for (const name of SRS_NAMES.values()) {
   srsInputs.set(name, document.getElementById(name));
@@ -14,14 +15,14 @@ const permissionsList = document.getElementById("permissions");
 const clearPermissionsBtn = document.getElementById("clearPermissions");
 const permsClearedLbl = document.getElementById("permsClearedLbl");
 
-// Store the current options
 function inputChanged() {
   const settings = {
     apiKey: apiKeyInput.value,
-    runOnLoad: runOnLoadChkBox.checked,
+    runOnLoad: runOnLoadCheckbox.checked,
     includedSRS: {},
     customVocab: customVocabInput.value.split('\n'),
     blacklist: blacklistInput.value.split('\n'),
+    onlyReplaceLearnedVocab: onlyReplaceLearnedVocabCheckbox.checked,
   };
   if (settings.customVocab[0] === "")
     settings.customVocab = [];
@@ -51,9 +52,7 @@ function inputChanged() {
 function saveSettings(settings) {
   const toStore = {};
   toStore[STORAGE_ROOT] = settings;
-  browser.storage.local.set(toStore).then(function () {
-    console.log("Saved.");
-  });
+  browser.storage.local.set(toStore);
 }
 
 function validate(settings) {
@@ -62,7 +61,7 @@ function validate(settings) {
       if (!granted) {
         if (settings)
           settings.runOnLoad = false;
-        runOnLoadChkBox.checked = false;
+        runOnLoadCheckbox.checked = false;
         noOptionalPermissions();
       }
     }, onError);
@@ -134,34 +133,33 @@ function refreshPermissions() {
     }, onError);
 }
 
-function loadPage(storage) {
-  validate();
-  refreshPermissions();
-  const settings = storage[STORAGE_ROOT];
+function updateSettingsControlValues(settings) {
   if (!settings) {
     return;
   }
-  else {
-    apiKeyInput.value = settings.apiKey || "";
-    runOnLoadChkBox.checked = settings.runOnLoad;
-    if (runOnLoadChkBox.checked === null)
-      runOnLoadChkBox.checked = false;
-    customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
-    blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
-    for (const [key, element] of srsInputs.entries()) {
-      element.checked = settings.includedSRS ? settings.includedSRS[key] : true;
-    }
+  apiKeyInput.value = settings.apiKey || "";
+  runOnLoadCheckbox.checked = settings.runOnLoad ?? false;
+  onlyReplaceLearnedVocabCheckbox.checked = settings.onlyReplaceLearnedVocab ?? true;
+  customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
+  blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
+  for (const [key, element] of srsInputs.entries()) {
+    element.checked = settings.includedSRS ? settings.includedSRS[key] : true;
   }
-  console.log("Loaded.");
 }
 
-function initOptions() {
-  // Retrieve stored options when the page is loaded.
-  browser.storage.local.get().then(loadPage, onError);
+function setControlValues(storage) {
+  validate();
+  refreshPermissions();
+  const settings = storage[STORAGE_ROOT];
+  updateSettingsControlValues(settings);
+}
 
-  // Setup listeners to save options when the user makes modifications
+function initControls() {
+  browser.storage.local.get().then(setControlValues, onError);
+
   apiKeyInput.addEventListener("input", inputChanged);
-  runOnLoadChkBox.addEventListener("change", inputChanged);
+  runOnLoadCheckbox.addEventListener("change", inputChanged);
+  onlyReplaceLearnedVocabCheckbox.addEventListener("change", inputChanged);
   customVocabInput.addEventListener("input", inputChanged);
   blacklistInput.addEventListener("input", inputChanged);
   for (const element of srsInputs.values()) {
@@ -169,6 +167,12 @@ function initOptions() {
   }
   clearCacheBtn.addEventListener("click", clearCache);
   clearPermissionsBtn.addEventListener("click", resetPermissions);
+  window.addEventListener("focus", () => {
+    browser.storage.local.get().then(storage => {
+      const settings = storage[STORAGE_ROOT];
+      updateSettingsControlValues(settings);
+    }, onError);
+  });
 }
 
-initOptions();
+initControls();

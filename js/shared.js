@@ -1,46 +1,6 @@
 const STORAGE_ROOT = "wanikanjector";
 const LOCAL_CACHE = `${STORAGE_ROOT}_cache`
-const API_KEY_ERROR = "No API key provided! Please visit the options page to set it.";
-const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
-
-function parseHtml(html) {
-  const template = document.createElement('template');
-  template.innerHTML = html;
-  return template.content.childNodes;
-}
-
-NodeList.prototype.replaceText = function (search, replaceFunc, textOnly = false) {
-  const toRemove = [];
-  for (let element of this) {
-    let node = element.firstChild;
-    if (!node)
-      continue;
-
-    do {
-      if (node.nodeType !== Node.TEXT_NODE)
-        continue;
-      const original = node.nodeValue;
-      const replacement = original.replace(search, replaceFunc);
-      if (replacement === original)
-        continue;
-
-      if (textOnly || !/</.test(replacement)) {
-        node.nodeValue = replacement;
-      }
-      else {
-        // HTML
-        const nodes = parseHtml(replacement);
-        while (nodes.length > 0) {
-          node.parentNode.insertBefore(nodes[0], node); // This removes nodes[0] from nodes ;_;
-        }
-        toRemove.push(node);
-      }
-    } while (node = node.nextSibling);
-  }
-  for (let child of toRemove.values()) {
-    child.parentNode.removeChild(child);
-  }
-}
+const SRS_NAMES = ["apprentice", "guru", "master", "enlightened", "burned"];
 
 function onError(e) {
   console.error(e);
@@ -73,3 +33,69 @@ function fade(el, duration, fadeIn) {
 }
 function fadeIn(el, duration) { fade(el, duration, true); }
 function fadeOut(el, duration) { fade(el, duration, false); }
+
+// Replace content for the given tab if its url is not blacklisted.
+function executeContentScriptOnTab(tabInfo) {
+  browser.storage.local.get()
+    .then(function (storage) {
+      function isBlacklisted() {
+        if (tabInfo.url.startsWith(browser.extension.getURL("")))
+          return true; // Make sure the options/popup pages are in English
+        const settings = storage[STORAGE_ROOT];
+        if (!settings)
+          return false;
+        const blacklist = settings.blacklist;
+        if (blacklist && blacklist.length > 0) {
+          const pattern = new RegExp(
+            blacklist.map(function (entry) {
+              // Allow both regex and exact URLs.
+              return '(' + entry + ')';
+            })
+              .join('|'));
+          return pattern.test(tabInfo.url);
+        }
+        return false;
+      }
+
+      function markAsExecuted() {
+        executed[tabInfo] = "jp";
+      }
+
+      if (!isBlacklisted()) {
+        browser.tabs.executeScript(tabInfo.id, {
+          file: "/js/content.js"
+        })
+          .then(markAsExecuted);
+      }
+    });
+}
+
+function executeContentScriptOnTabById(tabId) {
+  browser.tabs.get(tabId)
+    .then(executeContentScriptOnTab);
+}
+
+// Switches the current tab between English and Japanese
+function toggleActiveTab(tab) {
+  // Mark modified elements as English/Japanese
+  function setLanguage(lang) {
+    const inner = "data-" + lang;
+    const title = "data-" + (lang === "jp" ? "en" : "jp");
+    browser.tabs.executeScript({
+      code: "let elements = document.getElementsByClassName(\".wanikanjector\");\n"
+        + "Array.prototype.forEach.call(elements, function(element) {\n"
+        + `element.innerText = element.attributes.get('${inner}');\n`
+        + `element.title = element.attributes.get('${title}');\n`
+        + "})"
+    });
+  }
+
+  let lang = executed[tab.id];
+  if (lang) {
+    lang = (lang === "jp" ? "en" : "jp");
+    executed[tab.id] = lang;
+    setLanguage(lang);
+  } else {
+    executeContentScriptOnTabById(tab.id);
+  }
+}
