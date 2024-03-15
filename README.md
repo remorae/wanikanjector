@@ -1,5 +1,5 @@
 # Overview
-Wanikanjector replaces English words with their Japanese equivalent in [kanji](https://en.wikipedia.org/wiki/Kanji).
+Wanikanjector replaces English words with their Japanese equivalent in [kanji](https://en.wikipedia.org/wiki/Kanji) using the [WaniKani API](https://docs.api.wanikani.com/).
 
 However, there's a catch: By default, only words you've learned from [WaniKani](https://www.wanikani.com) are replaced.
 

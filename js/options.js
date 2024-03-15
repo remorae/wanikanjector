@@ -5,7 +5,7 @@ const cacheClearedLbl = document.getElementById("cacheClearedLbl");
 const runOnLoadChkBox = document.getElementById("runOnLoad");
 const SRS_NAMES = ["apprentice", "guru", "master", "enlightened", "burned"];
 const srsInputs = new Map();
-for (let name of SRS_NAMES.values()) {
+for (const name of SRS_NAMES.values()) {
   srsInputs.set(name, document.getElementById(name));
 }
 const customVocabInput = document.getElementById("customVocab");
@@ -16,19 +16,18 @@ const permsClearedLbl = document.getElementById("permsClearedLbl");
 
 // Store the current options
 function inputChanged() {
-  let settings = {};
-  settings = {
+  const settings = {
     apiKey: apiKeyInput.value,
     runOnLoad: runOnLoadChkBox.checked,
     includedSRS: {},
     customVocab: customVocabInput.value.split('\n'),
     blacklist: blacklistInput.value.split('\n'),
-  }
+  };
   if (settings.customVocab[0] === "")
     settings.customVocab = [];
   if (settings.blacklist[0] === "")
     settings.blacklist = [];
-  for (let [key, element] of srsInputs.entries()) {
+  for (const [key, element] of srsInputs.entries()) {
     settings.includedSRS[key] = element.checked;
   }
 
@@ -50,7 +49,7 @@ function inputChanged() {
 }
 
 function saveSettings(settings) {
-  let toStore = {};
+  const toStore = {};
   toStore[STORAGE_ROOT] = settings;
   browser.storage.local.set(toStore).then(function () {
     console.log("Saved.");
@@ -66,7 +65,7 @@ function validate(settings) {
         runOnLoadChkBox.checked = false;
         noOptionalPermissions();
       }
-    }, onError)
+    }, onError);
 }
 
 function noOptionalPermissions() {
@@ -94,9 +93,9 @@ function resetPermissions() {
 function getDescription(permission) {
   switch (permission) {
     case "tabs":
-      return "Used to run tab URLs against the blacklist."
+      return "Used to run tab URLs against the blacklist.";
     case "storage":
-      return "Used to save your vocabulary list from WaniKani as well as these options."
+      return "Used to save your vocabulary list from WaniKani as well as these options.";
   }
 }
 
@@ -149,7 +148,7 @@ function loadPage(storage) {
       runOnLoadChkBox.checked = false;
     customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
     blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
-    for (let [key, element] of srsInputs.entries()) {
+    for (const [key, element] of srsInputs.entries()) {
       element.checked = settings.includedSRS ? settings.includedSRS[key] : true;
     }
   }
@@ -165,7 +164,7 @@ function initOptions() {
   runOnLoadChkBox.addEventListener("change", inputChanged);
   customVocabInput.addEventListener("input", inputChanged);
   blacklistInput.addEventListener("input", inputChanged);
-  for (let element of srsInputs.values()) {
+  for (const element of srsInputs.values()) {
     element.addEventListener("change", inputChanged);
   }
   clearCacheBtn.addEventListener("click", clearCache);

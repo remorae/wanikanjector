@@ -1,7 +1,18 @@
 const STORAGE_ROOT = "wanikanjector";
-const LOCAL_CACHE = `${STORAGE_ROOT}_cache`
+const LOCAL_CACHE = `${STORAGE_ROOT}_cache`;
 const API_KEY_ERROR = "No API key provided! Please visit the options page to set it.";
 const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
+const SRS_NAMES = ["apprentice", "guru", "master", "enlightened", "burned"];
+const levelToSrsName = new Map();
+levelToSrsName.set(1, SRS_NAMES[0]);
+levelToSrsName.set(2, SRS_NAMES[0]);
+levelToSrsName.set(3, SRS_NAMES[0]);
+levelToSrsName.set(4, SRS_NAMES[0]);
+levelToSrsName.set(5, SRS_NAMES[1]);
+levelToSrsName.set(6, SRS_NAMES[1]);
+levelToSrsName.set(7, SRS_NAMES[2]);
+levelToSrsName.set(8, SRS_NAMES[3]);
+levelToSrsName.set(9, SRS_NAMES[4]);
 
 function parseHtml(html) {
   const template = document.createElement('template');
@@ -10,10 +21,11 @@ function parseHtml(html) {
 }
 
 NodeList.prototype.replaceText = function (search, replaceFunc, textOnly = false) {
+  let replaced = 0;
   const toRemove = [];
-  for (let element of this) {
+  for (const element of this) {
     let node = element.firstChild;
-    if (!node)
+    if (node === null)
       continue;
 
     do {
@@ -24,6 +36,7 @@ NodeList.prototype.replaceText = function (search, replaceFunc, textOnly = false
       if (replacement === original)
         continue;
 
+      ++replaced;
       if (textOnly || !/</.test(replacement)) {
         node.nodeValue = replacement;
       }
@@ -37,99 +50,174 @@ NodeList.prototype.replaceText = function (search, replaceFunc, textOnly = false
       }
     } while (node = node.nextSibling);
   }
-  for (let child of toRemove.values()) {
+  for (const child of toRemove.values()) {
     child.parentNode.removeChild(child);
   }
+  return replaced;
+};
+
+function isCacheExpired(date) {
+  const then = new Date(date);
+  const now = new Date();
+  return (Math.abs(now - then) > (3600 * 1000)); // 1 hour
 }
 
-function cacheVocabList(vocab) {
-  cache = {};
-  cache[LOCAL_CACHE] = {
-    inserted: (new Date()).toJSON(),
-    vocabList: vocab
-  };
-  browser.storage.local.set(cache);
-}
-
-function tryWaniKani(apiKey, async) {
-  if (!apiKey) {
+function getWanikaniAPIResponse(apiKey, url, type) {
+  if (apiKey === null) {
     console.error(API_KEY_ERROR);
-    return [];
+    return null;
   }
 
-  let vocab;
+  let responseObject = null;
   const request = new XMLHttpRequest();
   request.onreadystatechange = function () {
-    if (request.readyState === XMLHttpRequest.DONE) {
-      if (request.status === 200) {
-        vocab = JSON.parse(request.responseText).requested_information.general;
-        cacheVocabList(vocab);
-      } else {
-        console.error("Could not retrieve WaniKani vocabulary.");
-        console.error(response.status);
-        vocab = [];
-      }
+    if (request.readyState !== XMLHttpRequest.DONE) {
+      return;
+    }
+    if (request.status === 200) {
+      responseObject = JSON.parse(request.responseText);
+    } else {
+      console.error(`Request to WaniKani API failed: server returned status code ${request.status}.`);
+      return;
+    }
+    if (responseObject === null || responseObject.object !== type) {
+      console.error("Failed to parse WaniKani API response.");
+      responseObject = null;
     }
   };
-  request.open("GET", `https://www.wanikani.com/api/v1.4/user/${apiKey}/vocabulary`, async);
+  request.open("GET", url, false);
+  request.setRequestHeader("Authorization", `Bearer ${apiKey}`);
   request.send();
-  return vocab;
+  return responseObject;
 }
 
-function tryCacheOrWaniKani(hit, apiKey) {
-  function isExpired(date) {
-    const then = new Date(date);
-    const now = new Date();
-    return (Math.abs(now - then) > (3600 * 1000)); // 1 hour
-  }
+function getWanikaniUserInfo(apiKey) {
+  return getWanikaniAPIResponse(apiKey, "https://api.wanikani.com/v2/user", "user");
+}
 
-  if (hit && hit.vocabList) {
-    if (!hit.inserted || isExpired(hit.inserted)) {
-      return tryWaniKani(apiKey, true);
+function getWanikaniCollection(apiKey, url) {
+  let collection = getWanikaniAPIResponse(apiKey, url, "collection");
+  if (collection !== null) {
+    while (collection.pages.next_url !== null) {
+      const nextPage = getWanikaniAPIResponse(apiKey, collection.pages.next_url, "collection");
+      if (nextPage === null) {
+        return null;
+      }
+      collection.data = collection.data.concat(nextPage.data);
+      collection.pages = nextPage.pages;
     }
-    console.log("Using cached vocabulary.");
-    return hit.vocabList;
   }
-
-  return tryWaniKani(apiKey, false);
+  return collection;
 }
 
-function vocabFilter(word, includedSRS) {
+function makeLevelsParam(userInfo) {
+  const maxLevel = Math.min(userInfo.data.level, userInfo.data.subscription.max_level_granted);
+  let levelsParam = "";
+  for (let i = 1; i <= maxLevel; ++i) {
+    if (i > 1) {
+      levelsParam += ",";
+    }
+    levelsParam += `${i}`;
+  }
+  return levelsParam;
+}
+
+function getWanikaniVocabAssignments(apiKey) {
+  const userInfo = getWanikaniUserInfo(apiKey);
+  if (userInfo === null) {
+    console.error("Failed to get WaniKani user information.");
+    return null;
+  }
+
+  const levelsParam = makeLevelsParam(userInfo);
+  return getWanikaniCollection(apiKey, `https://api.wanikani.com/v2/assignments?levels=${levelsParam}&started&subject_types=vocabulary`);
+}
+
+function updateCachedWanikaniVocabAssignments(cache, apiKey) {
+  if (!cache.vocabAssignments || !cache.insertedVocabAssignments || isCacheExpired(cache.insertedVocabAssignments)) {
+    console.log("Fetching latest WaniKani vocab assignments...");
+    const vocabAssignments = getWanikaniVocabAssignments(apiKey);
+    if (vocabAssignments !== null) {
+      cache.insertedVocabAssignments = (new Date()).toJSON();
+      cache.vocabAssignments = vocabAssignments;
+      browser.storage.local.set(cache);
+    }
+    else {
+      console.error("Failed to get WaniKani vocab assignments.");
+    }
+  }
+  else {
+    console.log("Using cached vocab assignments.");
+  }
+  return cache.vocabAssignments;
+}
+
+function includeVocabAssignment(assignment, includedSRS) {
+  if (assignment.data.subject_type !== "vocabulary") {
+    return false;
+  }
   if (includedSRS) {
-    const level = word.user_specific ? word.user_specific.srs : null;
-    if (level) {
-      const included = includedSRS[level];
-      return included === null || included;
-    }
+    const srsName = levelToSrsName.get(assignment.data.srs_stage);
+    const included = includedSRS[srsName];
+    return included === null || included;
   }
   return true;
 }
 
-function buildWaniKaniDictionary(vocab) {
-  const results = new Map();
-  for (let word of vocab.values()) {
-    const meanings = word.meaning.split(", ");
-    for (let meaning of meanings.values()) {
-      results.set(meaning, word.character);
-    }
-    if (word.user_specific) {
-      const synonyms = word.user_specific.user_synonyms || [];
-      for (let synonym of synonyms.values()) {
-        results.set(synonym, word.character);
-      }
-    }
+function getWanikaniVocabSubjects(apiKey) {
+  const userInfo = getWanikaniUserInfo(apiKey);
+  if (userInfo === null) {
+    console.error("Failed to get WaniKani user information.");
+    return null;
   }
-  return results;
+
+  const levelsParam = makeLevelsParam(userInfo);
+  return getWanikaniCollection(apiKey, `https://api.wanikani.com/v2/subjects?types=vocabulary&levels=${levelsParam}`);
 }
 
-function importWaniKaniVocab(vocabDict, apiKey, includedSRS, cache) {
-  const vocab = tryCacheOrWaniKani(cache, apiKey);
-  if (vocab && vocab.length > 0) {
-    console.log(`WaniKani results: ${vocab.length}`);
-    const filtered = vocab.filter(word => vocabFilter(word, includedSRS));
-    console.log(`Filtered results: ${filtered.length}`);
-    for (let [key, value] of buildWaniKaniDictionary(filtered).entries()) {
-      vocabDict.set(key, value);
+function updateCachedWanikaniVocabSubjects(cache, apiKey) {
+  if (!cache.vocabSubjects || !cache.insertedVocabSubjects || isCacheExpired(cache.insertedVocabSubjects)) {
+    console.log("Fetching latest WaniKani vocab subjects...");
+    const vocabSubjects = getWanikaniVocabSubjects(apiKey);
+    if (vocabSubjects !== null) {
+      cache.insertedVocabSubjects = (new Date()).toJSON();
+      cache.vocabSubjects = vocabSubjects;
+      browser.storage.local.set(cache);
+    }
+    else {
+      console.error("Failed to get WaniKani vocab subjects.");
+    }
+  }
+  else {
+    console.log("Using cached vocab subjects.");
+  }
+  return cache.vocabSubjects;
+}
+
+function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects) {
+  for (const assignment of vocabAssignments.values()) {
+    const subject = vocabSubjects.data.find(subject => subject.id === assignment.data.subject_id);
+    if (!subject || subject === null) {
+      //console.error(`Missing subject for assignment with id ${assignment.id}`);
+      continue;
+    }
+    const meanings = subject.data.meanings;
+    for (const meaning of meanings.values()) {
+      vocabDict.set(meaning.meaning.toLowerCase(), subject.data.characters);
+    }
+  }
+}
+
+function importWanikaniVocab(vocabDict, apiKey, includedSRS, cache) {
+  const vocabAssignments = updateCachedWanikaniVocabAssignments(cache, apiKey);
+  if (vocabAssignments !== null) {
+    console.log(`Found ${vocabAssignments.data.length} vocabulary assignments.`);
+    const filteredAssignments = vocabAssignments.data.filter(assignment => includeVocabAssignment(assignment, includedSRS));
+    console.log(`${filteredAssignments.length} vocabulary assignments remain after applying filters.`);
+    const vocabSubjects = updateCachedWanikaniVocabSubjects(cache, apiKey);
+    if (vocabSubjects !== null) {
+      console.log(`Found ${vocabSubjects.data.length} vocabulary subjects.`);
+      buildVocabDictionary(vocabDict, filteredAssignments, vocabSubjects);
     }
   }
 }
@@ -139,11 +227,11 @@ function getReading(wkVocab, customVocab, target) {
   //const JAPANESE_DELIM = ';';
   //const ENGLISH_DELIM = ',';
 
-  if (customVocab && customVocab.size > 0) {
+  if (customVocab !== null && customVocab.size > 0) {
     //TODO: Custom vocab
   }
 
-  for (let word of wkVocab.values()) {
+  for (const word of wkVocab.values()) {
     if (word.character == target)
       return word.kana;
   }
@@ -152,8 +240,8 @@ function getReading(wkVocab, customVocab, target) {
 
 function buildReplaceFunc(vocabDict, wkVocab, settings) {
   return function (str) {
-    const kanji = vocabDict.get(str.toLowerCase());
-    if (!kanji)
+    const replacement = vocabDict.get(str.toLowerCase());
+    if (!replacement || replacement === null)
       return str;
     //TODO: Custom vocab
     //TODO: Audio?
@@ -161,7 +249,7 @@ function buildReplaceFunc(vocabDict, wkVocab, settings) {
     const onClick = "const title = this.attributes.get('title');\n"
       + "this.attributes.set('title', this.innerText);"
       + "this.innerText = title";
-    return `<span class="wanikanjector" title="${str}" data-en="${str}" data-jp="${kanji}" onClick="${onClick}">${kanji}</span>`;
+    return `<span class="wanikanjector" title="${str}" data-en="${str}" data-jp="${replacement}" onClick="${onClick}">${replacement}</span>`;
   };
 }
 
@@ -174,20 +262,22 @@ function main() {
     const vocabDict = new Map();
 
     const apiKey = settings ? settings.apiKey : null;
-    if (!apiKey) {
+    if (apiKey === null) {
       console.error(API_KEY_ERROR);
     }
     else {
-      browser.storage.local.get().then(function (localStorage) {
-        cache = localStorage[LOCAL_CACHE];
-        importWaniKaniVocab(vocabDict, apiKey, settings.includedSRS, cache);
-        console.log("WaniKani entries: " + vocabDict.keys().size);
+      cache = localStorage[LOCAL_CACHE];
+      if (!cache) {
+        cache = {};
+      }
+      importWanikaniVocab(vocabDict, apiKey, settings.includedSRS, cache);
+      console.log(`WaniKani vocab dictionary: ${vocabDict.size} entries`);
 
-        const replaceFunc = buildReplaceFunc(vocabDict, cache, settings);
-        const elements = document.querySelectorAll("body :not(noscript):not(script):not(style)");
-        elements.replaceText(/\b(\S+?)\b/g, replaceFunc);
-        console.log("Finished!");
-      });
+      console.log(vocabDict);
+      const replaceFunc = buildReplaceFunc(vocabDict, cache, settings);
+      const elements = document.querySelectorAll("body :not(noscript):not(script):not(style)");
+      const replaced = elements.replaceText(/(\b(\S+?)\b)+/g, replaceFunc);
+      console.log(`Replaced ${replaced} elements!`);
     }
   });
 }
