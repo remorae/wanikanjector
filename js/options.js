@@ -1,8 +1,8 @@
 const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
 
 const apiKeyInput = document.getElementById("apiKey");
-const clearCacheBtn = document.getElementById("clearCache");
-const cacheClearedLbl = document.getElementById("cacheClearedLbl");
+const clearCacheButton = document.getElementById("clearCache");
+const cacheClearedLabel = document.getElementById("cacheClearedLabel");
 const runOnLoadCheckbox = document.getElementById("runOnLoad");
 const onlyReplaceLearnedVocabCheckbox = document.getElementById("onlyReplaceLearnedVocab");
 const srsInputs = new Map();
@@ -12,10 +12,11 @@ for (const name of SRS_NAMES.values()) {
 const customVocabInput = document.getElementById("customVocab");
 const blacklistInput = document.getElementById("blacklist");
 const permissionsList = document.getElementById("permissions");
-const clearPermissionsBtn = document.getElementById("clearPermissions");
-const permsClearedLbl = document.getElementById("permsClearedLbl");
+const clearPermissionsButton = document.getElementById("clearPermissions");
+const permsClearedLabel = document.getElementById("permsClearedLabel");
 
-function inputChanged() {
+
+async function inputChanged() {
   const settings = {
     apiKey: apiKeyInput.value,
     runOnLoad: runOnLoadCheckbox.checked,
@@ -24,69 +25,76 @@ function inputChanged() {
     blacklist: blacklistInput.value.split('\n'),
     onlyReplaceLearnedVocab: onlyReplaceLearnedVocabCheckbox.checked,
   };
-  if (settings.customVocab[0] === "")
+  if (settings.customVocab[0] === "") {
     settings.customVocab = [];
-  if (settings.blacklist[0] === "")
+  }
+  if (settings.blacklist[0] === "") {
     settings.blacklist = [];
+  }
   for (const [key, element] of srsInputs.entries()) {
     settings.includedSRS[key] = element.checked;
   }
 
   if (settings.runOnLoad) {
-    browser.permissions.request(AUTO_RUN_PERMISSIONS)
-      .then(() => {
-        validate(settings);
-        fadeOut(permsClearedLbl, 100);
+    try {
+      await browser.permissions.request(AUTO_RUN_PERMISSIONS);
+      await validate(settings);
+      if (settings.runOnLoad) {
+        fadeOut(permsClearedLabel, 100);
         grantedOptionalPermissions();
-      }, onError)
-      .finally(function () {
-        refreshPermissions();
-        saveSettings(settings);
-      });
+        await refreshPermissions();
+        await saveSettings(settings);
+      }
+    }
+    catch (e) {
+      onError(e);
+      await validate(settings);
+      await saveSettings(settings);
+    }
   }
   else {
-    saveSettings(settings);
+    await validate(settings);
+    await saveSettings(settings);
   }
 }
 
-function saveSettings(settings) {
-  const toStore = {};
-  toStore[STORAGE_ROOT] = settings;
-  browser.storage.local.set(toStore);
-}
-
-function validate(settings) {
-  browser.permissions.contains(AUTO_RUN_PERMISSIONS)
-    .then(granted => {
-      if (!granted) {
-        if (settings)
-          settings.runOnLoad = false;
-        runOnLoadCheckbox.checked = false;
-        noOptionalPermissions();
+async function validate(settings) {
+  try {
+    const granted = await browser.permissions.contains(AUTO_RUN_PERMISSIONS);
+    if (!granted) {
+      if (settings) {
+        settings.runOnLoad = false;
       }
-    }, onError);
+      runOnLoadCheckbox.checked = false;
+      noOptionalPermissions();
+    }
+  }
+  catch (e) {
+    onError(e);
+  }
 }
 
 function noOptionalPermissions() {
-  clearPermissionsBtn.classList.remove("btn-warning");
-  clearPermissionsBtn.classList.add("btn-success");
-  clearPermissionsBtn.classList.add("disabled");
+  clearPermissionsButton.classList.remove("btn-warning");
+  clearPermissionsButton.classList.add("btn-success");
+  clearPermissionsButton.classList.add("disabled");
 }
 
 function grantedOptionalPermissions() {
-  clearPermissionsBtn.classList.add("btn-warning");
-  clearPermissionsBtn.classList.remove("btn-success");
-  clearPermissionsBtn.classList.remove("disabled");
-}
+  clearPermissionsButton.classList.add("btn-warning");
+  clearPermissionsButton.classList.remove("btn-success");
+  clearPermissionsButton.classList.remove("disabled");
 
-function resetPermissions() {
-  if (clearPermissionsBtn.classList.contains("disabled"))
-    return;
-  browser.permissions.remove(AUTO_RUN_PERMISSIONS);
-  validate();
-  refreshPermissions();
-  noOptionalPermissions();
-  fadeIn(permsClearedLbl, 300);
+  async function resetPermissions() {
+    if (clearPermissionsButton.classList.contains("disabled")) {
+      return;
+    }
+    browser.permissions.remove(AUTO_RUN_PERMISSIONS);
+    await validate();
+    await refreshPermissions();
+    noOptionalPermissions();
+    fadeIn(permsClearedLabel, 300);
+  }
 }
 
 function getDescription(permission) {
@@ -98,39 +106,43 @@ function getDescription(permission) {
   }
 }
 
-function refreshPermissions() {
-  browser.permissions.getAll()
-    .then(result => {
-      while (permissionsList.children.length > 0)
-        permissionsList.removeChild(permissions.children[0]);
-      result.permissions.forEach(permission => {
-        // <div class="input-group">
-        //   <div class="input-group-prepend">
-        //     <span class="input-group-text">Blacklist</span>
-        //   </div>
-        //   <textarea class="form-control" id="blacklist" rows="3"></textarea>
-        // </div>
-        const groupDiv = document.createElement("div");
-        groupDiv.className = "input-group mb-2";
+async function refreshPermissions() {
+  try {
+    const result = await browser.permissions.getAll();
+    while (permissionsList.children.length > 0) {
+      permissionsList.removeChild(permissions.children[0]);
+    }
+    result.permissions.forEach(permission => {
+      const groupDiv = document.createElement("div");
+      groupDiv.className = "input-group";
 
-        const prependDiv = document.createElement("div");
-        prependDiv.className = "input-group-prepend";
+      const prependDiv = document.createElement("div");
+      prependDiv.className = "input-group-prepend";
 
-        const prependText = document.createElement("span");
-        prependText.className = "input-group-text";
-        prependText.innerText = permission;
+      const prependText = document.createElement("span");
+      prependText.className = "input-group-text";
+      prependText.innerText = permission;
 
-        const description = document.createElement("span");
-        description.className = "form-control";
-        description.innerText = getDescription(permission);
-        description.setAttribute("style", "height: 100%");
+      const description = document.createElement("span");
+      description.className = "form-control";
+      description.innerText = getDescription(permission);
 
-        prependDiv.appendChild(prependText);
-        groupDiv.appendChild(prependDiv);
-        groupDiv.appendChild(description);
-        permissionsList.appendChild(groupDiv);
-      });
-    }, onError);
+      prependDiv.appendChild(prependText);
+      groupDiv.appendChild(prependDiv);
+      groupDiv.appendChild(description);
+      permissionsList.appendChild(groupDiv);
+    });
+  }
+  catch (e) {
+    onError(e);
+  }
+}
+
+function updateBlacklistControlValue(settings) {
+  if (!settings) {
+    return;
+  }
+  blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
 }
 
 function updateSettingsControlValues(settings) {
@@ -141,21 +153,39 @@ function updateSettingsControlValues(settings) {
   runOnLoadCheckbox.checked = settings.runOnLoad ?? false;
   onlyReplaceLearnedVocabCheckbox.checked = settings.onlyReplaceLearnedVocab ?? true;
   customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
-  blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
+  updateBlacklistControlValue(settings);
   for (const [key, element] of srsInputs.entries()) {
     element.checked = settings.includedSRS ? settings.includedSRS[key] : true;
   }
 }
 
-function setControlValues(storage) {
-  validate();
-  refreshPermissions();
+async function setControlValues(storage) {
   const settings = storage[STORAGE_ROOT];
+  await validate(settings);
+  await refreshPermissions();
   updateSettingsControlValues(settings);
 }
 
-function initControls() {
-  browser.storage.local.get().then(setControlValues, onError);
+async function clearCache() {
+  try {
+    await browser.storage.local.remove(LOCAL_CACHE);
+    clearCacheButton.classList.remove("btn-warning");
+    clearCacheButton.classList.add("btn-success");
+    fadeIn(cacheClearedLabel, 300);
+  }
+  catch (e) {
+    onError(e);
+  }
+}
+
+async function initControls() {
+  try {
+    const storage = await browser.storage.local.get();
+    setControlValues(storage);
+  }
+  catch (e) {
+    onError(e);
+  }
 
   apiKeyInput.addEventListener("input", inputChanged);
   runOnLoadCheckbox.addEventListener("change", inputChanged);
@@ -165,13 +195,17 @@ function initControls() {
   for (const element of srsInputs.values()) {
     element.addEventListener("change", inputChanged);
   }
-  clearCacheBtn.addEventListener("click", clearCache);
-  clearPermissionsBtn.addEventListener("click", resetPermissions);
-  window.addEventListener("focus", () => {
-    browser.storage.local.get().then(storage => {
+  clearCacheButton.addEventListener("click", clearCache);
+  clearPermissionsButton.addEventListener("click", resetPermissions);
+  window.addEventListener("focus", async () => {
+    try {
+      const storage = await browser.storage.local.get();
       const settings = storage[STORAGE_ROOT];
-      updateSettingsControlValues(settings);
-    }, onError);
+      updateBlacklistControlValue(settings);
+    }
+    catch (e) {
+      onError(e);
+    }
   });
 }
 

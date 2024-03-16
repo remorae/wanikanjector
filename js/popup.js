@@ -1,44 +1,48 @@
-const kanjiToggleBtn = document.getElementById("kanjiToggleBtn");
-const generateVocabBtn = document.getElementById("vocabBtn");
-const optionsBtn = document.getElementById("optionsBtn");
+const kanjiToggleButton = document.getElementById("kanjiToggleButton");
+const generateVocabButton = document.getElementById("vocabButton");
+const optionsButton = document.getElementById("optionsButton");
 const blacklistInput = document.getElementById("blacklist");
 
-optionsBtn.addEventListener("click", el => {
-    browser.runtime.openOptionsPage();
-    window.close();
+optionsButton.addEventListener("click", el => {
+  browser.runtime.openOptionsPage();
+  window.close();
 });
 
-function inputChanged() {
-  browser.storage.local.get().then(storage => {
+async function inputChanged() {
+  try {
+    const storage = await browser.storage.local.get();
     const settings = storage[STORAGE_ROOT];
     if (!settings) {
       return;
     }
-    settings.blacklist = blacklistInput.value.split('\n')
-    saveSettings(settings);
-  }, onError);
-}
-
-function saveSettings(settings) {
-  const toStore = {};
-  toStore[STORAGE_ROOT] = settings;
-  browser.storage.local.set(toStore);
+    settings.blacklist = blacklistInput.value.split('\n');
+    await saveSettings(settings);
+  }
+  catch (e) {
+    onError(e);
+  }
 }
 
 function setControlValues(storage) {
-    const settings = storage[STORAGE_ROOT];
-    if (!settings) {
-      return;
-    }
-    else {
-      blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
-    }
+  const settings = storage[STORAGE_ROOT];
+  if (!settings) {
+    return;
+  }
+  else {
+    blacklistInput.value = settings.blacklist ? settings.blacklist.join('\n') : "";
+  }
+}
+
+async function initControls() {
+  try {
+    const storage = await browser.storage.local.get();
+    setControlValues(storage);
+  }
+  catch (e) {
+    onError(e);
   }
 
-function initControls() {
-    browser.storage.local.get().then(setControlValues, onError);
-
-    blacklistInput.addEventListener("input", inputChanged);
+  blacklistInput.addEventListener("input", inputChanged);
 }
 
 initControls();
