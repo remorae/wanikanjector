@@ -3,11 +3,6 @@ const generateVocabButton = document.getElementById("vocabButton");
 const optionsButton = document.getElementById("optionsButton");
 const blacklistInput = document.getElementById("blacklist");
 
-optionsButton.addEventListener("click", el => {
-  browser.runtime.openOptionsPage();
-  window.close();
-});
-
 async function inputChanged() {
   try {
     const storage = await browser.storage.local.get();
@@ -42,6 +37,10 @@ async function initControls() {
     onError(e);
   }
 
+  optionsButton.addEventListener("click", () => {
+    browser.runtime.openOptionsPage();
+    window.close();
+  });
   blacklistInput.addEventListener("input", inputChanged);
 }
 
