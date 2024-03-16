@@ -84,17 +84,17 @@ function grantedOptionalPermissions() {
   clearPermissionsButton.classList.add("btn-warning");
   clearPermissionsButton.classList.remove("btn-success");
   clearPermissionsButton.classList.remove("disabled");
+}
 
-  async function resetPermissions() {
-    if (clearPermissionsButton.classList.contains("disabled")) {
-      return;
-    }
-    browser.permissions.remove(AUTO_RUN_PERMISSIONS);
-    await validate();
-    await refreshPermissions();
-    noOptionalPermissions();
-    fadeIn(permsClearedLabel, 300);
+async function resetPermissions() {
+  if (clearPermissionsButton.classList.contains("disabled")) {
+    return;
   }
+  browser.permissions.remove(AUTO_RUN_PERMISSIONS);
+  await validate();
+  await refreshPermissions();
+  noOptionalPermissions();
+  fadeIn(permsClearedLabel, 300);
 }
 
 function getDescription(permission) {
