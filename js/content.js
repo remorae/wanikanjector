@@ -256,9 +256,9 @@ function buildReplaceFunc(vocabDict, wkVocab, settings) {
     //TODO: Custom vocab
     //TODO: Audio?
     //const reading = getReading(wkVocab, null, kanji);
-    const onClick = "const title = this.attributes.get('title');\n"
-      + "this.attributes.set('title', this.innerText);"
-      + "this.innerText = title";
+    const onClick = "const title = this.attributes.title.value;"
+      + "this.attributes.title.value = this.innerText;"
+      + "this.innerText = title;";
     return `<span class="wanikanjector" title="${str}" data-en="${str}" data-jp="${replacement}" onClick="${onClick}">${replacement}</span>`;
   };
 }
