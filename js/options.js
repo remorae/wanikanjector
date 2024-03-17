@@ -1,5 +1,3 @@
-const AUTO_RUN_PERMISSIONS = { permissions: ["tabs"] };
-
 const apiKeyInput = document.getElementById("apiKey");
 const clearCacheButton = document.getElementById("clearCache");
 const cacheClearedLabel = document.getElementById("cacheClearedLabel");
@@ -150,8 +148,8 @@ function updateSettingsControlValues(settings) {
     return;
   }
   apiKeyInput.value = settings.apiKey || "";
-  runOnLoadCheckbox.checked = settings.runOnLoad ?? false;
-  onlyReplaceLearnedVocabCheckbox.checked = settings.onlyReplaceLearnedVocab ?? true;
+  runOnLoadCheckbox.checked = settings.runOnLoad ? settings.runOnLoad : false;
+  onlyReplaceLearnedVocabCheckbox.checked = settings.onlyReplaceLearnedVocab ? settings.onlyReplaceLearnedVocab : true;
   customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
   updateBlacklistControlValue(settings);
   for (const [key, element] of srsInputs.entries()) {

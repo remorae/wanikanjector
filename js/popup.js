@@ -37,8 +37,14 @@ async function initControls() {
     onError(e);
   }
 
-  optionsButton.addEventListener("click", () => {
-    browser.runtime.openOptionsPage();
+  kanjiToggleButton.addEventListener("click", async () => {
+    const activeTabs = await browser.tabs.query({ currentWindow: true, active: true });
+    if (activeTabs.length > 0) {
+      await browser.runtime.sendMessage({ command: TOGGLE_ACTIVE_TAB_COMMAND, tabId: activeTabs[0] });
+    }
+  });
+  optionsButton.addEventListener("click", async () => {
+    await browser.runtime.openOptionsPage();
     window.close();
   });
   blacklistInput.addEventListener("input", inputChanged);

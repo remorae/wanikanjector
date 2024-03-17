@@ -7,7 +7,8 @@ Features:
 - [x] Enable/disable running automatically when loading a tab.
 - [x] Blacklist sites to prevent replacing text.
 - [x] Hover over words to see the original text.
-- [ ] Run on-demand upon clicking a button in the extension pop-up menu.
+- [x] Click words to toggle their language.
+- [x] Run on-demand or toggle the language for the entire page upon clicking a button in the extension pop-up menu.
 - [ ] Color-coordinate kanji by level (apprentice, guru, etc.).
 - [ ] Optionally highlight learned kanji on sites originally in Japanese.
 - [ ] Import custom vocabulary from outside of WaniKani.
