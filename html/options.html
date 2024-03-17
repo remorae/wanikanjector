@@ -12,9 +12,9 @@
     </header>
     <main>
       <section>
-        <h3>Public API Key</h3>
+        <h3>WaniKani API Token</h3>
         <div class="columns">
-          <p>Your API key can be obtained from your WaniKani <a href="https://www.wanikani.com/settings/account">account page</a>. This key is required to retrieve your vocabulary list.</p>
+          <p>Your API token can be obtained from your <a href="https://www.wanikani.com/settings/personal_access_tokens">WaniKani API tokens page</a>. This is required to retrieve WaniKani vocabulary accessible to you based on your subscription, as well as what items you've learned. A read-only token is sufficient.</p>
           <div class="form-group">
             <input type="password" class="form-control" id="apiKey" placeholder="Public API Key">
           </div>
@@ -45,11 +45,20 @@
       <section>
         <h3>Replaced Vocabulary</h3>
         <div class="columns">
-          <p>Uncheck to replace text with all the vocab in Wanikani, not just vocab that you have learned or is available at your level.</p>
+          <p>Uncheck to replace text with all the vocab in Wanikani, not just vocab that you have learned or is available at your level. You will need to clear the cache after changing this setting.</p>
           <form>
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="checkbox" id="onlyReplaceLearnedVocab" value="onlyReplaceLearnedVocab">
               <label class="form-check-label" for="onlyReplaceLearnedVocab">Only Replace Learned Vocabulary</label>
+            </div>
+          </form>
+        </div>
+        <div class="columns">
+          <p>Uncheck to replace all meanings for a particular word rather than only the primary meaning.</p>
+          <form>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="onlyReplacePrimaryMeaning" value="onlyReplacePrimaryMeaning">
+              <label class="form-check-label" for="onlyReplacePrimaryMeaning">Only Replace Primary Meaning</label>
             </div>
           </form>
         </div>

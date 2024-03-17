@@ -152,13 +152,13 @@ function updateCachedWanikaniVocabAssignments(cache, apiKey) {
   return cache.vocabAssignments;
 }
 
-function includeVocabAssignment(assignment, includedSRS) {
+function includeVocabAssignment(assignment, settings) {
   if (assignment.data.subject_type !== "vocabulary") {
     return false;
   }
-  if (includedSRS) {
+  if (settings.includedSRS) {
     const srsName = levelToSrsName.get(assignment.data.srs_stage);
-    const included = includedSRS[srsName];
+    const included = settings.includedSRS[srsName];
     return included === null || included;
   }
   return true;
@@ -194,8 +194,8 @@ function updateCachedWanikaniVocabSubjects(cache, apiKey, respectCurrentLevel) {
   return cache.vocabSubjects;
 }
 
-function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects, onlyReplaceLearnedVocab) {
-  if (onlyReplaceLearnedVocab) {
+function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects, settings) {
+  if (settings.onlyReplaceLearnedVocab) {
     for (const assignment of vocabAssignments.values()) {
       const subject = vocabSubjects.data.find(subject => subject.id === assignment.data.subject_id);
       if (!subject || subject === null) {
@@ -204,6 +204,9 @@ function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects, onlyRe
       }
       const meanings = subject.data.meanings;
       for (const meaning of meanings.values()) {
+        if (settings.onlyReplacePrimaryMeaning && !meaning.primary) {
+          continue;
+        }
         vocabDict.set(meaning.meaning.toLowerCase(), subject.data.characters);
       }
     }
@@ -212,22 +215,25 @@ function buildVocabDictionary(vocabDict, vocabAssignments, vocabSubjects, onlyRe
     for (const subject of vocabSubjects.data) {
       const meanings = subject.data.meanings;
       for (const meaning of meanings.values()) {
+        if (settings.onlyReplacePrimaryMeaning && !meaning.primary) {
+          continue;
+        }
         vocabDict.set(meaning.meaning.toLowerCase(), subject.data.characters);
       }
     }
   }
 }
 
-function importWanikaniVocab(vocabDict, apiKey, includedSRS, onlyReplaceLearnedVocab, cache) {
+function importWanikaniVocab(vocabDict, apiKey, settings, cache) {
   const vocabAssignments = updateCachedWanikaniVocabAssignments(cache, apiKey);
   if (vocabAssignments !== null) {
     console.log(`Found ${vocabAssignments.data.length} vocabulary assignments.`);
-    const filteredAssignments = vocabAssignments.data.filter(assignment => includeVocabAssignment(assignment, includedSRS));
+    const filteredAssignments = vocabAssignments.data.filter(assignment => includeVocabAssignment(assignment, settings));
     console.log(`${filteredAssignments.length} vocabulary assignments remain after applying filters.`);
-    const vocabSubjects = updateCachedWanikaniVocabSubjects(cache, apiKey, onlyReplaceLearnedVocab);
+    const vocabSubjects = updateCachedWanikaniVocabSubjects(cache, apiKey, settings.onlyReplaceLearnedVocab);
     if (vocabSubjects !== null) {
       console.log(`Found ${vocabSubjects.data.length} vocabulary subjects.`);
-      buildVocabDictionary(vocabDict, filteredAssignments, vocabSubjects, onlyReplaceLearnedVocab);
+      buildVocabDictionary(vocabDict, filteredAssignments, vocabSubjects, settings);
     }
   }
 }
@@ -280,7 +286,7 @@ function main() {
       if (!cache) {
         cache = {};
       }
-      importWanikaniVocab(vocabDict, apiKey, settings.includedSRS, settings.onlyReplaceLearnedVocab, cache);
+      importWanikaniVocab(vocabDict, apiKey, settings, settings, cache);
       console.log(`WaniKani vocab dictionary: ${vocabDict.size} entries`);
       const replaceFunc = buildReplaceFunc(vocabDict, cache, settings);
       const elements = document.querySelectorAll("body :not(noscript):not(script):not(style)");

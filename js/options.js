@@ -3,6 +3,7 @@ const clearCacheButton = document.getElementById("clearCache");
 const cacheClearedLabel = document.getElementById("cacheClearedLabel");
 const runOnLoadCheckbox = document.getElementById("runOnLoad");
 const onlyReplaceLearnedVocabCheckbox = document.getElementById("onlyReplaceLearnedVocab");
+const onlyReplacePrimaryMeaningCheckbox = document.getElementById("onlyReplacePrimaryMeaning");
 const srsInputs = new Map();
 for (const name of SRS_NAMES.values()) {
   srsInputs.set(name, document.getElementById(name));
@@ -22,6 +23,7 @@ async function inputChanged() {
     customVocab: customVocabInput.value.split('\n'),
     blacklist: blacklistInput.value.split('\n'),
     onlyReplaceLearnedVocab: onlyReplaceLearnedVocabCheckbox.checked,
+    onlyReplacePrimaryMeaning: onlyReplacePrimaryMeaningCheckbox.checked,
   };
   if (settings.customVocab[0] === "") {
     settings.customVocab = [];
@@ -150,6 +152,7 @@ function updateSettingsControlValues(settings) {
   apiKeyInput.value = settings.apiKey || "";
   runOnLoadCheckbox.checked = settings.runOnLoad ? settings.runOnLoad : false;
   onlyReplaceLearnedVocabCheckbox.checked = settings.onlyReplaceLearnedVocab ? settings.onlyReplaceLearnedVocab : true;
+  onlyReplacePrimaryMeaningCheckbox.checked = settings.onlyReplacePrimaryMeaning ? settings.onlyReplacePrimaryMeaning : true;
   customVocabInput.value = settings.customVocab ? settings.customVocab.join('\n') : "";
   updateBlacklistControlValue(settings);
   for (const [key, element] of srsInputs.entries()) {
@@ -188,6 +191,7 @@ async function initControls() {
   apiKeyInput.addEventListener("input", inputChanged);
   runOnLoadCheckbox.addEventListener("change", inputChanged);
   onlyReplaceLearnedVocabCheckbox.addEventListener("change", inputChanged);
+  onlyReplacePrimaryMeaningCheckbox.addEventListener("change", inputChanged);
   customVocabInput.addEventListener("input", inputChanged);
   blacklistInput.addEventListener("input", inputChanged);
   for (const element of srsInputs.values()) {
